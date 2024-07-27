@@ -20,14 +20,17 @@ model User {
 
 }
 
-model Text {
-  id    Int    @id @default(autoincrement())
-  text  String
-  createdAt DateTime @default(now())
-
-}
 model Image {
   id        Int      @id 
   url       String   // URL of the image in Supabase Storage
   createdAt DateTime @default(now())
+}
+
+model message {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

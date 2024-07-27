@@ -1,7 +1,10 @@
 import * as line from '@line/bot-sdk'
 import express from 'express'
 import 'dotenv/config'
+import { PrismaClient } from '@prisma/client';
 
+// create Prisma client
+const prisma = new PrismaClient();
 
 // create LINE SDK config from env variables
 const config: line.MiddlewareConfig = {
@@ -31,7 +34,7 @@ app.post('/webhook', line.middleware(config), (req, res) => {
 });
 
 // event handler
-function handleEvent(event: line.MessageEvent) {
+async function handleEvent(event: line.MessageEvent) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     // ignore non-text-message event
     return Promise.resolve(null);
@@ -39,6 +42,27 @@ function handleEvent(event: line.MessageEvent) {
 
   // create an echoing text message
   const echo = { type: 'text', text: event.message.text };
+
+  // save message to database
+  try {
+    console.log('Saving message to database:', {
+      content: event.message.text,
+      userId: event.source.userId ?? '',
+    });
+
+    await prisma.message.create({
+      data: {
+        content: event.message.text,
+        userId: event.source.userId ?? '',
+      }
+    });
+
+    console.log('Message saved successfully');
+  } catch (error) {
+    console.error('Error saving message to database:', error);
+  }
+
+  console.log(event);
 
   // use reply API
   return client.replyMessage({
